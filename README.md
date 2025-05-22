@@ -1,6 +1,36 @@
 # HTTrack-Attack-Denide
 Solutions to Prevent HTTrack and Website Cloning.
 
+### ✅ Using IP Deny Manager in cPanel
+🔹 Steps:
+- Log in to cPanel
+- Go to ```Security > IP Blocker``` or IP Deny Manager
+- In the IP Address or Domain field, add:
+
+```bash
+192.168.1.1
+```
+
+### ✅ Using ModSecurity in cPanel (If Available)
+- In cPanel, go to ModSecurity (under Security)
+- Turn on ModSecurity for your domain
+- If your host allows custom rules, ask support to add a rule like:
+
+```bash
+SecRule REQUEST_HEADERS:User-Agent "HTTrack|Wget|curl" "id:123456,phase:1,deny,status:403,msg:'Blocked scraper bot'"
+```
+
+### ✅ Rate Limiting with Cloudflare (Optional but Powerful)
+If you use Cloudflare, you can block or rate-limit requests from suspicious IPs or bots:
+
+- Add a WAF rule in Cloudflare:
+
+```bash
+If User-Agent contains "HTTrack"
+
+Then Block
+```
+
 ### ✅ Block HTTrack User-Agent in .htaccess (Apache)
 - HTTrack uses a specific User-Agent header. You can block it by editing your ```.htaccess ``` file (in your root directory):
 
