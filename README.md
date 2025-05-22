@@ -11,6 +11,42 @@ Solutions to Prevent HTTrack and Website Cloning.
 192.168.1.1
 ```
 
+### ✅ Protect Against Scrapers with Middleware (Block HTTrack)
+- Create a custom middleware to detect bad bots by User-Agent:
+
+```bash
+php artisan make:middleware BlockScrapers
+```
+Inside ```app/Http/Middleware/BlockScrapers.php```:
+
+```bash
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+
+class BlockScrapers
+{
+    public function handle(Request $request, Closure $next)
+    {
+        $userAgent = $request->header('User-Agent');
+
+        if (preg_match('/HTTrack|wget|curl|python|libwww|Scrapy/i', $userAgent)) {
+            abort(403, 'Access denied – Suspicious bot');
+        }
+        
+        $blockedIps = ['192.168.1.1', '203.0.113.0']; // your IP list
+        if (in_array($request->ip(), $blockedIps)) {
+            abort(403, 'Blocked IP');
+        }
+
+        return $next($request);
+    }
+}
+```
+
 ### ✅ Using ModSecurity in cPanel (If Available)
 - In cPanel, go to ModSecurity (under Security)
 - Turn on ModSecurity for your domain
@@ -18,6 +54,23 @@ Solutions to Prevent HTTrack and Website Cloning.
 
 ```bash
 SecRule REQUEST_HEADERS:User-Agent "HTTrack|Wget|curl" "id:123456,phase:1,deny,status:403,msg:'Blocked scraper bot'"
+```
+
+Register it in ```app/Http/Kernel.php```:
+
+```bash
+protected $middleware = [
+    // other middleware
+    \App\Http\Middleware\BlockScrapers::class,
+];
+```
+
+Register it in ```bootstrap/app.php```:
+
+```bash
+$middleware->alias([
+    'block.scrapers' => \App\Http\Middleware\BlockScrapers::class,
+]);
 ```
 
 ### ✅ Rate Limiting with Cloudflare (Optional but Powerful)
