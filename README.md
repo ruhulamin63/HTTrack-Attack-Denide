@@ -1,2 +1,70 @@
 # HTTrack-Attack-Denide
 Solutions to Prevent HTTrack and Website Cloning.
+
+### ✅ Block HTTrack User-Agent in .htaccess (Apache)
+- HTTrack uses a specific User-Agent header. You can block it by editing your ```.htaccess ``` file (in your root directory):
+
+```bash
+RewriteEngine On
+RewriteCond %{HTTP_USER_AGENT} ^HTTrack [NC,OR]
+RewriteCond %{HTTP_USER_AGENT} ^Wget [NC,OR]
+RewriteCond %{HTTP_USER_AGENT} ^WebCopier [NC,OR]
+RewriteCond %{HTTP_USER_AGENT} ^Offline\ Explorer [NC]
+RewriteRule ^.*$ - [F,L]
+```
+- This will return 403 Forbidden to these bots.
+
+### ✅ Deny HTTrack via PHP
+Add this to the top of your main PHP file (like ```index.php```):
+
+```bash
+<?php
+$user_agent = $_SERVER['HTTP_USER_AGENT'];
+if (preg_match('/HTTrack|Wget|WebCopier|Offline Explorer/i', $user_agent)) {
+    header('HTTP/1.0 403 Forbidden');
+    exit("Access Denied");
+}
+?>
+```
+
+### ✅ Rate Limit or Block IPs Using Firewall (Advanced)
+- Use server tools like Cloudflare, Fail2Ban, or your VPS/hosting firewall to:
+- Limit requests per second
+- Block IPs that download hundreds of pages in seconds
+
+### ✅ Use robots.txt (for ethical crawlers only)
+- Add this file in your root directory:
+```bash
+User-agent: HTTrack
+Disallow: /
+
+User-agent: *
+Disallow: /admin/
+```
+
+### ✅ Disable Directory Listing (if not already)
+- In ```.htaccess```:
+
+```bash
+Options -Indexes
+```
+- This prevents someone from accessing folders directly (like ```/images/```).
+
+### 🚫 What HTTrack Can’t Copy
+- HTTrack only copies static HTML content. It cannot copy:
+
+- Backend PHP logic
+
+- Databases
+
+- Server-side authentication
+
+- Files behind login forms (unless poorly protected)
+
+- So make sure:
+
+- Critical files are not directly linked or publicly accessible
+
+- Use authentication and session checks in all PHP pages
+
+
